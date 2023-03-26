@@ -1,8 +1,8 @@
-# Info: __id, __name 
 import numpy as np
 import math 
 import pandas as pd 
 
+# class section 
 class Info:
     def __init__(self, id, name):
         self.__id = id
@@ -38,12 +38,10 @@ class Students:
         dob = input("student's dob: ")
         student = Student(id, name, dob)
         self.students_list.append(student)
-    def len(self):
-        return len(self.students_list)
     def show(self):
         print('ID\tName\tDoB')
         for i in range(len(self.students_list)):
-            print('{}\t{}\t{}'.format(self.students_list[i].get_id(), self.students_list[i].get_name(), self.students_list[i].get_dob()))
+            print('{}\t{}\t{}'.format(self.students_list[i].get_id(), self.students_list[i].get_name(), self.students_list[i].get_dob())) 
 
 # Course Managment: list of Course objects
 # courses_list = [CourseObj1, CourseObj2, .......] 
@@ -60,91 +58,81 @@ class Courses:
     def show(self):
         print('ID\tName\tCredit')
         for i in range(len(self.courses_list)):
-            print('{}\t{}'.format(self.courses_list[i].get_id(), self.courses_list[i].get_name(), self.courses_list[i].get_credit()))
+            print('{}\t{}\t{}'.format(self.courses_list[i].get_id(), self.courses_list[i].get_name(), self.courses_list[i].get_credit()))
 
-# Marks Managment: dict of list
-# key: course_name
-# values: marks of students in a course
-class Marks:
-    marks = {}
-    credit = []
-    def __init__(self, students: Students, courses: Courses):
-        self.students = students
-        self.courses = courses
-        for i in range(self.courses.len()):
-            self.marks[self.courses.courses_list[i].get_name()] = []  
-            self.credit.append(cou.courses_list[i].get_credit())
-    def add_mark(self):
+# Marks Managment: dataframe
+def frame(students: Students, courses: Courses): 
+    # Students' info 
+    sids = []
+    snames = []
+    for i in range(len(students.students_list)):
+        sids.append(students.students_list[i].get_id())
+        snames.append(students.students_list[i].get_name())
+
+    # Courses' info
+    cids = []
+    cnames = []
+    credits = []
+    for i in range(len(courses.courses_list)):
+        cids.append(courses.courses_list[i].get_id())
+        cnames.append(courses.courses_list[i].get_name())
+        credits.append(courses.courses_list[i].get_credit())
+
+    df = pd.DataFrame(columns = cnames, index = snames)
+    return df
+
+class Managment:
+    gpas = []
+    credits = [] 
+    def __init__(self, frame, courses: Courses):
+        self.df = frame 
+
+        for i in range(len(courses.courses_list)):
+            self.credits.append(courses.courses_list[i].get_credit())
+
+    def add_marks(self):
         n = input('choose a course: ')
-        for i in range(self.students.len()):
-            s = float(input('{}: '.format(self.students.students_list[i].get_name())))
-            self.marks[n].append(math.floor(s))
-    def show_mark(self):
-        n = input('choose a course: ')
-        if (len(self.marks[n]) == 0):
-            print('marks of course is empty')
+        if (n in self.df.columns):
+            for i in self.df.index:
+                s = int(input(f'{i}:'))
+                self.df[n].loc[i] = s
         else:
-            print('ID\tName\tMarks')
-            for i in range(self.students.len()):
-                print('{}\t{}\t{}'.format(self.students.students_list[i].get_id(),self.students.students_list[i].get_name(), self.marks[n][i])) 
+            print("Don't have this course")
+        print(self.df) 
+
     def get_gpa(self):
-        self.marks['gpa'] = []
-        for i in range(len(self.students.students_list)):
-            up = 0
-            down = 0
-            for j in range(len(self.courses.courses_list)):
-                if (len(self.marks[self.courses.courses_list[j].get_name()]) ==0):
-                    continue
-                else:
-                   up += self.marks[self.courses.courses_list[j].get_name()][i] * self.credit[j]
-                   down += self.credit[j]
-            gpa = up/down
-            self.marks['gpa'].append(gpa)
-    def show_gpa(self):
-        print('ID\tName\tGPA')
-        for i in range(len(self.students.students_list)):
-            print("{}\t{}\t{}".format(self.students.students_list[i].get_id(),
-                                        self.students.students_list[i].get_name(),
-                                        self.marks['gpa'][i]))      
+        for i in self.df.index: 
+            g = np.average(self.df.loc[i].tolist(), weights = self.credits)
+            self.gpas.append(g)
+        self.df['gpa'] = self.gpas 
+        print(self.df) 
+
+    def sort_gpa(self): 
+        print(self.df.gpa.copy().sort_values(ascending = False).index.values.tolist())          
+
        
 
 stu = Students()
 cou = Courses()
 
-while(True):
-  print("""Menu
-  1. Input info 
-  2. Add marks for a course
-  3. Student list
-  4. Courses list
-  5. Marks list
-  6. GPA
-  7. Exist""")
-  c = int(input('Enter your choice: '))
-  if (c==1):
-    n = int(input("# students: "))
-    for i in range(n):
-       stu.add()
-    n = int(input("# courses: "))
-    for i in range(n):
-      cou.add()
-    m = Marks(stu, cou)
-  elif (c==2):
-    m = Marks(stu, cou)
-    m.add_mark()
-  elif (c==3):
-    stu.show()
-  elif (c==4):
-    cou.show()
-  elif (c==5):
-    m.show_mark()
-  elif (c==6):
-    m.get_gpa()
-    m.show_gpa()
-  elif (c==7):
-    break
-  else:
-    print('Wrong choice!')                  
+# input students  
+n = int(input("# students: "))
+for i in range(n):
+    stu.add()
+
+# input courses 
+n = int(input("# courses: "))
+for i in range(n):
+    cou.add()
+    
+# add marks for students    
+f = frame(stu, cou)
+m = Managment(f, cou)
+m.add_marks()
+m.get_gpa()
+m.sort_gpa()
+
+                
 
 
 

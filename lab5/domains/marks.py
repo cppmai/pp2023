@@ -26,28 +26,31 @@ def frame(students: Students, courses: Courses):
     return df
 
 class Managment:
-    gpas = []
-    credits = [] 
     def __init__(self, frame, courses: Courses):
         self.df = frame 
-
-        for i in range(len(courses.courses_list)):
-            self.credits.append(courses.courses_list[i].get_credit())
 
     def add_marks(self):
         for n in self.df.columns:
             print('Course', n, ':')
             for i in self.df.index:
-                s = int(input(f'{i}:'))
-                self.df[n].loc[i] = s 
+                if (self.df[n].isnull().loc[i]):
+                    s = int(input(f'{i}:'))
+                    self.df[n].loc[i] = s 
+                else:
+                    continue
 
-    def get_gpa(self):
-        # self.df = self.df.fillna(0)
-        for i in self.df.index: 
-            g = np.average(self.df.loc[i].tolist(), weights = self.credits)
-            self.gpas.append(g)
-        self.df['gpa'] = self.gpas
-        print(self.df) 
+def get_gpa(df, courses: Courses):
+    gpas = []
+    credits = [] 
+    marks = df.copy()
+    for i in range(len(courses.courses_list)):
+        credits.append(courses.courses_list[i].get_credit())
+  
+    for i in marks.index: 
+        g = np.average(list(map(int,marks.loc[i].tolist())), weights = credits)
+        gpas.append(g)
+    marks['gpa'] = gpas
+    return marks
 
-    def sort_gpa(self): 
-        print(self.df.gpa.copy().sort_values(by = 'gpa', ascending = False).index.values.tolist())          
+def sort_gpa(df): 
+    return (df.sort_values(by = 'gpa', ascending = False))          

@@ -1,0 +1,38 @@
+from domains.students import Students
+from domains.courses import Courses
+from domains.marks import *
+from input import *
+from output import *
+from zip_file import * 
+
+if (os.path.exists("students.zip")):
+    try:
+        extract_file()
+    except Exception as e:
+        print(e)  
+
+# add students 
+stu = Students()
+read_students_file(stu)
+add_students(stu)
+stu.show()
+students_file(stu)
+
+# add courses 
+cou = Courses()
+read_courses_file(cou)
+add_courses(cou)
+cou.show()
+courses_file(cou)
+
+# marks 
+f = frame(stu, cou)
+m = Managment(f, cou)
+read_marks_file(m)
+add_marks(m)
+print(m.df)
+marks_file(m)
+gpa_df = get_gpa(m.df, cou)
+print(sort_gpa(gpa_df))
+compress_file()
+
